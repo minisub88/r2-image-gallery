@@ -1,268 +1,530 @@
-const folderGrid = document.querySelector("#folder-grid");
-const imageGrid = document.querySelector("#image-grid");
-const statusEl = document.querySelector("#status");
-const titleEl = document.querySelector("#section-title");
-const crumbs = document.querySelector("#crumbs");
-const empty = document.querySelector("#empty");
-const searchWrap = document.querySelector("#search-wrap");
-const search = document.querySelector("#search");
-const viewer = document.querySelector("#viewer");
-const largeImage = document.querySelector("#large-image");
-const largeName = document.querySelector("#large-name");
-const openOriginal = document.querySelector("#open-original");
+(() => {
+  "use strict";
 
-let currentParent = "";
-let currentFolder = "";
-let images = [];
-let visibleImages = [];
-let viewerIndex = 0;
+  const IMAGE_ORIGIN = "https://maneulbbang.org/";
+  const descriptions = window.FOLDER_DESCRIPTIONS || {};
 
-function setStatus(message) {
-  statusEl.textContent = message;
-}
+  const el = (id) => document.getElementById(id);
 
-function showEmpty(message) {
-  empty.hidden = false;
-  empty.textContent = message;
-}
+  const state = {
+    parent: "",
+    currentFolder: "",
+    images: [],
+    visibleImages: [],
+    viewerIndex: -1
+  };
 
-function renderCrumbs() {
-  crumbs.replaceChildren();
+  const folderGrid = el("folder-grid");
+  const imageGrid = el("image-grid");
+  const status = el("status");
+  const folderSection = el("folder-section");
+  const imageSection = el("image-section");
+  const breadcrumbs = el("breadcrumbs");
 
-  const home = document.createElement("button");
-  home.textContent = "전체 폴더";
-  home.addEventListener("click", () => loadFolders(""));
-
-  crumbs.append(home);
-
-  if (currentParent) {
-    const sep = document.createElement("span");
-    sep.textContent = "/";
-
-    const parentButton = document.createElement("button");
-    parentButton.textContent = currentParent;
-    parentButton.addEventListener("click", () =>
-      loadFolders(currentParent)
-    );
-
-    crumbs.append(sep, parentButton);
+  // 숫자가 포함된 파일명도 자연스러운 순서로 정렬
+  function naturalSort(a, b) {
+    return a.localeCompare(b, undefined, {
+      numeric: true,
+      sensitivity: "base"
+    });
   }
 
-  if (currentFolder) {
-    const sep = document.createElement("span");
-    sep.textContent = "/";
-
-    const leaf = document.createElement("span");
-    leaf.textContent = currentFolder.split("/").at(-1);
-
-    crumbs.append(sep, leaf);
-  }
-}
-
-async function getJson(path) {
-  const response = await fetch(path);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || `HTTP ${response.status}`);
+  function cleanPath(value) {
+    return String(value || "").replace(/^\/+|\/+$/g, "");
   }
 
-  return data;
-}
+  // 폴더 설명 대응표에서 해당 폴더의 제목과 설명 가져오기
+  function descriptionFor(path) {
+    const item = descriptions[path] || {};
 
-async function loadFolders(parent) {
-  currentParent = parent;
-  currentFolder = "";
-  images = [];
+    return {
+      title: typeof item.title === "string"
+        ? item.title.trim() : "",
 
-  folderGrid.hidden = false;
-  imageGrid.hidden = true;
-  searchWrap.hidden = true;
+      description: typeof item.description === "string"
+        ? item.description.trim() : ""
+    };
+  }
 
-  folderGrid.replaceChildren();
-  imageGrid.replaceChildren();
+  // API에서 받은 폴더 정보를 전체 경로로 변환
+  function folderPath(item, parent) {
+    if (typeof item === "string") {
+      const raw = cleanPath(item);
 
-  empty.hidden = true;
+      if (!raw) return "";
 
-  titleEl.textContent = parent
-    ? `${parent} 하위 폴더`
-    : "첫 번째 폴더";
-
-  setStatus("폴더 목록을 불러오는 중...");
-  renderCrumbs();
-
-  try {
-    const data = await getJson(
-      `/api/folders?parent=${encodeURIComponent(parent)}`
-    );
-
-    setStatus(`${data.folders.length}개 폴더`);
-
-    if (!data.folders.length) {
-      return showEmpty("폴더가 없습니다.");
+      return parent && !raw.startsWith(parent + "/")
+        ? `${parent}/${raw}`
+        : raw;
     }
 
-    empty.hidden = true;
+    if (!item || typeof item !== "object") return "";
 
-    for (const name of data.folders) {
-      const fullPath = parent
-        ? `${parent}/${name}`
-        : name;
+    const raw = cleanPath(
+      item.path ||
+      item.prefix ||
+      item.key ||
+      item.name ||
+      item.folder ||
+      ""
+    );
+
+    if (!raw) return "";
+
+    return parent &&
+      !raw.startsWith(parent + "/") &&
+      raw !== parent
+        ? `${parent}/${raw}`
+        : raw;
+  }
+
+  function extractFolders(data, parent) {
+    const list = Array.isArray(data)
+      ? data
+      : data && (
+          data.folders ||
+          data.prefixes ||
+          data.directories ||
+          data.items
+        ) || [];
+
+    return list
+      .map(item => folderPath(item, parent))
+      .filter(Boolean)
+      .filter(path => path !== parent)
+      .sort(naturalSort);
+  }
+
+  // 이미지의 실제 주소 가져오기
+  function imageUrl(item) {
+    if (typeof item === "string") {
+      if (/^https?:\/\//i.test(item)) {
+        return item;
+      }
+
+      return IMAGE_ORIGIN +
+        item.split("/").map(encodeURIComponent).join("/");
+    }
+
+    if (!item || typeof item !== "object") return "";
+
+    const direct =
+      item.url ||
+      item.publicUrl ||
+      item.src ||
+      item.imageUrl;
+
+    if (direct) return direct;
+
+    const key =
+      item.key ||
+      item.name ||
+      item.path ||
+      item.filename ||
+      "";
+
+    if (!key) return "";
+
+    if (/^https?:\/\//i.test(key)) return key;
+
+    return IMAGE_ORIGIN +
+      String(key).split("/").map(encodeURIComponent).join("/");
+  }
+
+  // 이미지 파일명 가져오기
+  function imageName(item, url) {
+    if (item && typeof item === "object") {
+      const name =
+        item.name ||
+        item.filename ||
+        item.key ||
+        item.path;
+
+      if (name) {
+        return String(name).split("/").pop();
+      }
+    }
+
+    try {
+      return decodeURIComponent(
+        new URL(url).pathname.split("/").pop()
+      );
+    } catch {
+      return String(url).split("/").pop();
+    }
+  }
+
+  function extractImages(data) {
+    const list = Array.isArray(data)
+      ? data
+      : data && (
+          data.images ||
+          data.objects ||
+          data.files ||
+          data.items
+        ) || [];
+
+    return list
+      .map(item => {
+        const url = imageUrl(item);
+
+        return {
+          url,
+          name: imageName(item, url)
+        };
+      })
+      .filter(item => item.url)
+      .sort((a, b) => naturalSort(a.name, b.name));
+  }
+
+  // 서버에서 JSON 데이터 가져오기
+  async function getJson(url) {
+    const response = await fetch(url, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`요청 실패 (${response.status})`);
+    }
+
+    return response.json();
+  }
+
+  function setStatus(message) {
+    status.textContent = message || "";
+  }
+
+  // 현재 폴더 위치 표시
+  function renderBreadcrumbs() {
+    breadcrumbs.replaceChildren();
+
+    const root = document.createElement("button");
+    root.type = "button";
+    root.textContent = "전체 캐릭터";
+
+    root.addEventListener("click", () => {
+      loadFolders("");
+    });
+
+    breadcrumbs.append(root);
+
+    if (!state.currentFolder) return;
+
+    const parts = state.currentFolder.split("/");
+    let accumulated = "";
+
+    parts.forEach((part, index) => {
+      const separator = document.createElement("span");
+      separator.textContent = "›";
+      breadcrumbs.append(separator);
+
+      accumulated = accumulated
+        ? `${accumulated}/${part}`
+        : part;
+
+      const path = accumulated;
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.textContent = part;
+
+      button.addEventListener("click", () => {
+        if (index === parts.length - 1) {
+          loadImages(path);
+        } else {
+          loadFolders(path);
+        }
+      });
+
+      breadcrumbs.append(button);
+    });
+  }
+
+  // 폴더 버튼 표시
+  function renderFolders(paths) {
+    folderGrid.replaceChildren();
+
+    folderSection.hidden = false;
+    imageSection.hidden = true;
+
+    if (!paths.length) {
+      setStatus("표시할 폴더가 없습니다.");
+      return;
+    }
+
+    paths.forEach(path => {
+      const leaf = path.split("/").pop();
+      const info = descriptionFor(path);
 
       const button = document.createElement("button");
+      button.type = "button";
       button.className = "folder-card";
+
+      const top = document.createElement("span");
+      top.className = "folder-card-top";
 
       const icon = document.createElement("span");
       icon.className = "folder-icon";
-      icon.textContent = "▰";
+      icon.textContent = "📁";
 
-      const label = document.createElement("span");
-      label.textContent = name;
+      const title = document.createElement("span");
+      title.className = "folder-title";
 
-      button.append(icon, label);
+      // 대응표에 제목이 있으면 사용하고,
+      // 없으면 원래 폴더명을 사용
+      title.textContent = info.title || leaf;
 
+      top.append(icon, title);
+      button.append(top);
+
+      // 설명이 입력된 폴더만 캡션 표시
+      if (info.description) {
+        const caption = document.createElement("span");
+
+        caption.className = "folder-description";
+        caption.textContent = info.description;
+
+        button.append(caption);
+      }
+
+      // 두 단계 구조:
+      // 첫 번째 폴더는 하위 폴더 목록,
+      // 두 번째 폴더는 이미지 목록 표시
       button.addEventListener("click", () => {
-        if (!parent) {
-          loadFolders(fullPath);
+        if (path.split("/").length >= 2) {
+          loadImages(path);
         } else {
-          loadImages(fullPath);
+          loadFolders(path);
         }
       });
 
       folderGrid.append(button);
+    });
+
+    setStatus(`${paths.length}개 폴더`);
+  }
+
+  // 폴더 목록 불러오기
+  async function loadFolders(parent) {
+    state.parent = parent;
+    state.currentFolder = parent;
+
+    renderBreadcrumbs();
+
+    folderGrid.replaceChildren();
+    folderSection.hidden = false;
+    imageSection.hidden = true;
+
+    setStatus("폴더 목록을 불러오는 중입니다.");
+
+    try {
+      const query = parent
+        ? `?parent=${encodeURIComponent(parent)}`
+        : "";
+
+      const data = await getJson(`/api/folders${query}`);
+      const paths = extractFolders(data, parent);
+
+      renderFolders(paths);
+
+    } catch (error) {
+      setStatus(
+        `폴더 목록을 불러오지 못했습니다. ${error.message}`
+      );
     }
-  } catch (error) {
-    setStatus("폴더를 불러오지 못했습니다.");
-    showEmpty(error.message);
   }
-}
 
-async function loadImages(folder) {
-  currentFolder = folder;
+  // 이미지 목록 불러오기
+  async function loadImages(folder) {
+    state.currentFolder = folder;
 
-  folderGrid.hidden = true;
-  imageGrid.hidden = false;
+    renderBreadcrumbs();
 
-  imageGrid.replaceChildren();
-  empty.hidden = true;
+    folderGrid.replaceChildren();
+    folderSection.hidden = true;
+    imageSection.hidden = false;
 
-  searchWrap.hidden = false;
-  search.value = "";
+    imageGrid.replaceChildren();
 
-  titleEl.textContent = folder;
-  setStatus("이미지 목록을 불러오는 중...");
+    el("search-input").value = "";
 
-  renderCrumbs();
+    el("image-heading").textContent =
+      `${folder.split("/").pop()} 이미지`;
 
-  try {
-    const data = await getJson(
-      `/api/images?folder=${encodeURIComponent(folder)}`
+    setStatus("이미지 목록을 불러오는 중입니다.");
+
+    try {
+      const data = await getJson(
+        `/api/images?folder=${encodeURIComponent(folder)}`
+      );
+
+      state.images = extractImages(data);
+      state.visibleImages = state.images.slice();
+
+      renderImages();
+
+      setStatus(`${state.images.length}개 이미지`);
+
+    } catch (error) {
+      setStatus(
+        `이미지 목록을 불러오지 못했습니다. ${error.message}`
+      );
+    }
+  }
+
+  // 이미지 썸네일 표시
+  function renderImages() {
+    imageGrid.replaceChildren();
+
+    const items = state.visibleImages;
+
+    el("empty-search").hidden = items.length !== 0;
+
+    items.forEach(item => {
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "image-card";
+
+      const img = document.createElement("img");
+
+      img.src = item.url;
+      img.alt = item.name;
+      img.loading = "lazy";
+
+      img.onerror = () => {
+        img.alt = `${item.name} (이미지를 불러올 수 없음)`;
+      };
+
+      const name = document.createElement("span");
+
+      name.className = "image-name";
+      name.textContent = item.name;
+
+      button.append(img, name);
+
+      button.addEventListener("click", () => {
+        openViewer(item);
+      });
+
+      imageGrid.append(button);
+    });
+  }
+
+  // 확대 보기 열기
+  function openViewer(item) {
+    state.viewerIndex = state.visibleImages.findIndex(
+      candidate => candidate.url === item.url
     );
 
-    images = data.images;
-    renderImages();
-  } catch (error) {
-    setStatus("이미지를 불러오지 못했습니다.");
-    showEmpty(error.message);
-  }
-}
+    updateViewer();
 
-function renderImages() {
-  const query = search.value.trim().toLowerCase();
-
-  visibleImages = images.filter(item =>
-    item.name.toLowerCase().includes(query)
-  );
-
-  imageGrid.replaceChildren();
-
-  setStatus(
-    `${visibleImages.length} / ${images.length}개 이미지`
-  );
-
-  empty.hidden = visibleImages.length > 0;
-
-  if (!visibleImages.length) {
-    empty.textContent = images.length
-      ? "검색 결과가 없습니다."
-      : "이 폴더에는 이미지가 없습니다.";
-
-    return;
+    el("viewer").hidden = false;
+    document.body.style.overflow = "hidden";
   }
 
-  visibleImages.forEach((item, index) => {
-    const card = document.createElement("button");
-    card.className = "image-card";
-    card.type = "button";
+  // 확대 보기 내용 갱신
+  function updateViewer() {
+    const item = state.visibleImages[state.viewerIndex];
 
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = item.url;
-    img.alt = item.name;
+    if (!item) return;
 
-    const name = document.createElement("span");
-    name.className = "filename";
-    name.textContent = item.name;
+    el("viewer-image").src = item.url;
+    el("viewer-image").alt = item.name;
 
-    card.append(img, name);
+    el("viewer-caption").textContent = item.name;
 
-    card.addEventListener("click", () =>
-      openViewer(index)
+    el("viewer-original").href = item.url;
+
+    el("viewer-prev").disabled =
+      state.visibleImages.length < 2;
+
+    el("viewer-next").disabled =
+      state.visibleImages.length < 2;
+  }
+
+  // 확대 보기 닫기
+  function closeViewer() {
+    el("viewer").hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  // 이전 / 다음 이미지 이동
+  function moveViewer(direction) {
+    if (!state.visibleImages.length) return;
+
+    state.viewerIndex =
+      (state.viewerIndex + direction + state.visibleImages.length)
+      % state.visibleImages.length;
+
+    updateViewer();
+  }
+
+  // 이용 안내 펼치기 / 접기
+  el("guide-toggle").addEventListener("click", () => {
+    const panel = el("guide-panel");
+
+    const expanded =
+      el("guide-toggle").getAttribute("aria-expanded") === "true";
+
+    el("guide-toggle").setAttribute(
+      "aria-expanded",
+      String(!expanded)
     );
 
-    imageGrid.append(card);
+    panel.hidden = expanded;
   });
-}
 
-function openViewer(index) {
-  if (!visibleImages.length) return;
+  // 파일명 검색
+  el("search-input").addEventListener("input", event => {
+    const query = event.target.value.trim().toLocaleLowerCase();
 
-  viewerIndex =
-    (index + visibleImages.length) % visibleImages.length;
+    state.visibleImages = state.images.filter(item =>
+      item.name.toLocaleLowerCase().includes(query)
+    );
 
-  const item = visibleImages[viewerIndex];
+    renderImages();
 
-  largeImage.src = item.url;
-  largeImage.alt = item.name;
+    setStatus(`${state.visibleImages.length}개 이미지`);
+  });
 
-  largeName.textContent = item.name;
-  openOriginal.href = item.url;
+  // 확대 보기 버튼 이벤트
+  el("viewer-close").addEventListener("click", closeViewer);
 
-  viewer.hidden = false;
-  document.body.style.overflow = "hidden";
-}
+  el("viewer-prev").addEventListener("click", () => {
+    moveViewer(-1);
+  });
 
-function closeViewer() {
-  viewer.hidden = true;
-  largeImage.src = "";
-  document.body.style.overflow = "";
-}
+  el("viewer-next").addEventListener("click", () => {
+    moveViewer(1);
+  });
 
-function moveViewer(delta) {
-  openViewer(viewerIndex + delta);
-}
+  // 이미지 바깥 영역을 누르면 닫기
+  el("viewer").addEventListener("click", event => {
+    if (event.target === el("viewer")) {
+      closeViewer();
+    }
+  });
 
-document.querySelector("#close-viewer")
-  .addEventListener("click", closeViewer);
+  // 키보드 조작
+  document.addEventListener("keydown", event => {
+    if (el("viewer").hidden) return;
 
-document.querySelector("#prev-image")
-  .addEventListener("click", () => moveViewer(-1));
+    if (event.key === "Escape") {
+      closeViewer();
+    }
 
-document.querySelector("#next-image")
-  .addEventListener("click", () => moveViewer(1));
+    if (event.key === "ArrowLeft") {
+      moveViewer(-1);
+    }
 
-search.addEventListener("input", renderImages);
+    if (event.key === "ArrowRight") {
+      moveViewer(1);
+    }
+  });
 
-viewer.addEventListener("click", event => {
-  if (event.target === viewer) closeViewer();
-});
-
-document.addEventListener("keydown", event => {
-  if (viewer.hidden) return;
-
-  if (event.key === "Escape") closeViewer();
-  if (event.key === "ArrowLeft") moveViewer(-1);
-  if (event.key === "ArrowRight") moveViewer(1);
-});
-
-loadFolders("");
+  // 최초 접속 시 최상위 폴더 목록 표시
+  loadFolders("");
+})();
