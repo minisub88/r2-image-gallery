@@ -50,7 +50,7 @@ window.FOLDER_DESCRIPTIONS = {
   },
 
   "MM/MN": {
-    title: "미리아 베트리니(나체)",
+    title: "미리아(나체)",
     description: "포션학자, 그러나 헐벗은"
   },
   
@@ -66,7 +66,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "MM/CS": {
     title: "기타",
-    description: "시작 상황, 소개글 전용 이미지입니다. 열람을 추천하지 않습니다."
+    description: "시작 상황, 엔딩 전용 이미지입니다. 열람을 추천하지 않습니다."
   },
 
   "MM/BG": {
