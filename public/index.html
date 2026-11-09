@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111318">
+  <meta name="description" content="R2 이미지 미리보기 갤러리">
+  <title>Image Gallery</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">IMAGE GALLERY</a>
+    <span class="top-note">PUBLIC LIBRARY</span>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <p class="eyebrow">CLOUDFLARE R2</p>
+      <h1>이미지 갤러리</h1>
+      <p class="sub">
+        폴더를 선택해 저장된 이미지를 미리 볼 수 있습니다.
+      </p>
+    </section>
+
+    <section class="browser">
+      <div class="crumbs" id="crumbs">
+        <span>폴더를 불러오는 중...</span>
+      </div>
+
+      <div class="toolbar">
+        <div>
+          <h2 id="section-title">폴더 선택</h2>
+          <p id="status" class="status">
+            R2 폴더 목록을 불러오고 있습니다.
+          </p>
+        </div>
+
+        <label class="search-wrap" id="search-wrap" hidden>
+          <span class="sr-only">파일명 검색</span>
+          <input id="search" type="search" placeholder="파일명 검색">
+        </label>
+      </div>
+
+      <div id="folder-grid" class="folder-grid"></div>
+      <div id="image-grid" class="image-grid" hidden></div>
+      <div id="empty" class="empty" hidden>
+        표시할 항목이 없습니다.
+      </div>
+    </section>
+  </main>
+
+  <div class="viewer" id="viewer" hidden
+       role="dialog" aria-modal="true"
+       aria-label="이미지 미리보기">
+
+    <button class="viewer-close" id="close-viewer">×</button>
+    <button class="viewer-nav prev" id="prev-image">‹</button>
+
+    <figure>
+      <img id="large-image" alt="">
+      <figcaption>
+        <span id="large-name"></span>
+        <a id="open-original" target="_blank" rel="noopener">
+          원본 열기 ↗
+        </a>
+      </figcaption>
+    </figure>
+
+    <button class="viewer-nav next" id="next-image">›</button>
+  </div>
+
+  <footer>
+    Images served from maneulbbang.org
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
