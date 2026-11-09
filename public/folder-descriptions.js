@@ -100,7 +100,7 @@ window.FOLDER_DESCRIPTIONS = {
   },
   
   "PL": {
-    title: "자루에 가득한 백금을 위하여",
+    title: "자루에 가득한 백금",
     description: "[🖼️163(🔞68)/女4]"
   },
   
@@ -140,7 +140,7 @@ window.FOLDER_DESCRIPTIONS = {
   },
 
   "HT": {
-    title: "녹슬지 않은 강을 위하여",
+    title: "녹슬지 않은 강",
     description: "⚠️공사중⚠️"
   },
 
