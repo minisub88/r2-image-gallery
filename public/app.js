@@ -242,6 +242,68 @@
     });
   }
 
+  // 폴더 썸네일 영역에 이미지 표시
+  function addThumbnailImage(container, item) {
+    if (!item || !item.url) return;
+
+    const img = document.createElement("img");
+    img.src = item.url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.onerror = () => img.remove();
+
+    container.append(img);
+  }
+
+  // 하위 폴더는 첫 번째 이미지,
+  // 상위 폴더는 하위 폴더별 이미지 4장을 사용
+  async function loadFolderThumbnail(path, container) {
+    try {
+      if (path.split("/").length >= 2) {
+        const data = await getJson(
+          `/api/images?folder=${encodeURIComponent(path)}`
+        );
+        const images = extractImages(data);
+
+        if (container.isConnected && images.length) {
+          container.classList.add("single");
+          addThumbnailImage(container, images[0]);
+        }
+
+        return;
+      }
+
+      const data = await getJson(
+        `/api/folders?parent=${encodeURIComponent(path)}`
+      );
+      const childFolders = extractFolders(data, path);
+
+      const imageLists = await Promise.all(
+        childFolders.slice(0, 4).map(async childPath => {
+          try {
+            const imageData = await getJson(
+              `/api/images?folder=${encodeURIComponent(childPath)}`
+            );
+            return extractImages(imageData);
+          } catch {
+            return [];
+          }
+        })
+      );
+
+      if (!container.isConnected) return;
+
+      container.classList.add("mosaic");
+      imageLists.forEach(images => {
+        if (images.length) {
+          addThumbnailImage(container, images[0]);
+        }
+      });
+    } catch {
+      // 썸네일을 불러오지 못해도 폴더 버튼 자체는 정상적으로 사용할 수 있음
+    }
+  }
+
   // 폴더 버튼 표시
   function renderFolders(paths) {
     folderGrid.replaceChildren();
@@ -262,12 +324,12 @@
       button.type = "button";
       button.className = "folder-card";
 
+      const thumbnail = document.createElement("span");
+      thumbnail.className = "folder-thumbnail";
+      thumbnail.setAttribute("aria-hidden", "true");
+
       const top = document.createElement("span");
       top.className = "folder-card-top";
-
-      const icon = document.createElement("span");
-      icon.className = "folder-icon";
-      icon.textContent = "📁";
 
       const title = document.createElement("span");
       title.className = "folder-title";
@@ -276,8 +338,8 @@
       // 없으면 원래 폴더명을 사용
       title.textContent = info.title || leaf;
 
-      top.append(icon, title);
-      button.append(top);
+      top.append(title);
+      button.append(thumbnail, top);
 
       // 설명이 입력된 폴더만 캡션 표시
       if (info.description) {
@@ -301,6 +363,7 @@
       });
 
       folderGrid.append(button);
+      loadFolderThumbnail(path, thumbnail);
     });
 
     setStatus(`${paths.length}개 폴더`);
