@@ -3,77 +3,84 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111318">
-  <meta name="description" content="R2 이미지 미리보기 갤러리">
-  <title>Image Gallery</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta name="theme-color" content="#15171c">
+  <title>이미지 갤러리</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/">IMAGE GALLERY</a>
-    <span class="top-note">PUBLIC LIBRARY</span>
-  </header>
-
   <main class="page">
-    <section class="intro">
-      <p class="eyebrow">CLOUDFLARE R2</p>
-      <h1>이미지 갤러리</h1>
-      <p class="sub">
-        폴더를 선택해 저장된 이미지를 미리 볼 수 있습니다.
+    <header class="site-header">
+      <div>
+        <h1>이미지 갤러리</h1>
+        <p class="site-subtitle">캐릭터 채팅 이미지 미리보기</p>
+      </div>
+
+      <button id="guide-toggle" class="guide-toggle"
+              type="button" aria-expanded="false"
+              aria-controls="guide-panel">
+        이용 안내 <span id="guide-chevron" aria-hidden="true">⌄</span>
+      </button>
+    </header>
+
+    <section id="guide-panel" class="guide-panel" hidden>
+      <h2>이용 안내</h2>
+      <p>이곳은 캐릭터 채팅에 사용되는 이미지의 미리보기 공간입니다.</p>
+      <ol>
+        <li>캐릭터 채팅 이름에 해당하는 첫 번째 폴더를 선택하세요.</li>
+        <li>그 안에서 인물, 엑스트라, 배경 등 원하는 분류를 선택하세요.</li>
+        <li>이미지를 누르면 크게 볼 수 있으며, 좌우 이동으로 다른 이미지도 확인할 수 있습니다.</li>
+      </ol>
+      <p class="guide-note">
+        폴더 이름 아래에 표시되는 설명을 참고해 원하는 이미지를 찾아보세요.
       </p>
     </section>
 
-    <section class="browser">
-      <div class="crumbs" id="crumbs">
-        <span>폴더를 불러오는 중...</span>
-      </div>
+    <nav id="breadcrumbs" class="breadcrumbs" aria-label="현재 위치"></nav>
 
-      <div class="toolbar">
-        <div>
-          <h2 id="section-title">폴더 선택</h2>
-          <p id="status" class="status">
-            R2 폴더 목록을 불러오고 있습니다.
-          </p>
-        </div>
+    <div id="status" class="status" role="status" aria-live="polite">
+      폴더 목록을 불러오는 중입니다.
+    </div>
 
-        <label class="search-wrap" id="search-wrap" hidden>
-          <span class="sr-only">파일명 검색</span>
-          <input id="search" type="search" placeholder="파일명 검색">
-        </label>
-      </div>
-
+    <section id="folder-section" aria-label="폴더 목록">
       <div id="folder-grid" class="folder-grid"></div>
-      <div id="image-grid" class="image-grid" hidden></div>
-      <div id="empty" class="empty" hidden>
-        표시할 항목이 없습니다.
+    </section>
+
+    <section id="image-section" aria-label="이미지 목록" hidden>
+      <div class="image-toolbar">
+        <h2 id="image-heading">이미지</h2>
+        <input id="search-input" type="search"
+               placeholder="파일명 검색" autocomplete="off"
+               aria-label="파일명 검색">
       </div>
+
+      <div id="image-grid" class="image-grid"></div>
+      <p id="empty-search" class="empty-message" hidden>
+        검색 결과가 없습니다.
+      </p>
     </section>
   </main>
 
-  <div class="viewer" id="viewer" hidden
-       role="dialog" aria-modal="true"
-       aria-label="이미지 미리보기">
+  <div id="viewer" class="viewer" role="dialog"
+       aria-modal="true" aria-label="이미지 미리보기" hidden>
+    <button id="viewer-close" class="viewer-close"
+            type="button" aria-label="닫기">×</button>
 
-    <button class="viewer-close" id="close-viewer">×</button>
-    <button class="viewer-nav prev" id="prev-image">‹</button>
+    <button id="viewer-prev" class="viewer-nav viewer-prev"
+            type="button" aria-label="이전 이미지">‹</button>
 
-    <figure>
-      <img id="large-image" alt="">
-      <figcaption>
-        <span id="large-name"></span>
-        <a id="open-original" target="_blank" rel="noopener">
-          원본 열기 ↗
-        </a>
-      </figcaption>
+    <figure class="viewer-figure">
+      <img id="viewer-image" alt="">
+      <figcaption id="viewer-caption"></figcaption>
     </figure>
 
-    <button class="viewer-nav next" id="next-image">›</button>
+    <button id="viewer-next" class="viewer-nav viewer-next"
+            type="button" aria-label="다음 이미지">›</button>
+
+    <a id="viewer-original" class="viewer-original"
+       target="_blank" rel="noopener">원본 이미지 열기</a>
   </div>
 
-  <footer>
-    Images served from maneulbbang.org
-  </footer>
-
-  <script src="/app.js"></script>
+  <script src="./folder-descriptions.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
