@@ -1,7 +1,7 @@
 window.FOLDER_DESCRIPTIONS = {
   "BR": {
     title: "WHITE TIDE",
-    description: "X됐습니다. 뭐가 X됐냐고요? 뭐긴요. 당신이 있는 행성이지요."
+    description: "[🖼️166(🔞54)/女3]"
   },
 
   "BR/BG": {
@@ -31,12 +31,12 @@ window.FOLDER_DESCRIPTIONS = {
 
   "BR/CS": {
     title: "기타",
-    description: "시작 상황, 소개글 용 이미지입니다. 열람을 추천하지 않습니다."
+    description: "시작 상황, 소개글 전용 이미지입니다. 열람을 추천하지 않습니다."
   },
 
   "MM": {
     title: "미러드 미리아",
-    description: "마법사들은 대개 머릿속에 떠오른 '천재적인 생각'을 즉시 저지르고 보는 기벽이 있습니다."
+    description: "[웹툰&🖼️144(🔞72)/女2]"
   },
 
   "MM/BG": {
@@ -46,17 +46,17 @@ window.FOLDER_DESCRIPTIONS = {
 
   "MM/MR": {
     title: "미리아 베트리니",
-    description: "음침한 마녀"
+    description: "포션학자"
   },
 
   "MM/MN": {
     title: "미리아 베트리니(나체)",
-    description: "헐벗은 마녀"
+    description: "포션학자, 그러나 헐벗은"
   },
   
   "MM/ES": {
     title: "에스플로네 폴베리",
-    description: "폭발광 마녀"
+    description: "폭파 전문가"
   },
 
   "MM/EX": {
@@ -66,7 +66,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "MM/CS": {
     title: "기타",
-    description: "시작 상황, 소개글 용 이미지입니다. 열람을 추천하지 않습니다."
+    description: "시작 상황, 소개글 전용 이미지입니다. 열람을 추천하지 않습니다."
   },
 
   "MM/BG": {
@@ -76,7 +76,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "PS": {
     title: "폐석이 바라는 것은",
-    description: "우주 시대 사양산업의 비극적 사례인 마르모레아에 오신 것을 환영합니다."
+    description: "[🖼️63(🔞11)/女1]"
   },
   
   "PS/PE": {
@@ -101,7 +101,7 @@ window.FOLDER_DESCRIPTIONS = {
   
   "PL": {
     title: "자루에 가득한 백금을 위하여",
-    description: "백금의 용이냐고요? 아뇨. 하지만 '하얀 금'의 용은 맞습니다."
+    description: "[🖼️163(🔞68)/女4]"
   },
   
   "PL/SA": {
@@ -111,17 +111,17 @@ window.FOLDER_DESCRIPTIONS = {
 
   "PL/ME": {
     title: "멜린다",
-    description: "도둑"
+    description: "소금 밀매범"
   },
   
   "PL/MI": {
     title: "미렐라 라비에리",
-    description: "감찰관"
+    description: "정부 감찰관"
   },
 
   "PL/MR": {
     title: "미리아",
-    description: "음침한 마녀"
+    description: "포션학자"
   },
 
   "PL/EX": {
@@ -131,7 +131,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "PL/ET": {
     title: "기타",
-    description: "시작 상황, 소개글 용 이미지입니다. 열람을 추천하지 않습니다."
+    description: "시작 상황, 소개글 전용 이미지입니다. 열람을 추천하지 않습니다."
   },
 
   "PL/BG": {
@@ -141,6 +141,11 @@ window.FOLDER_DESCRIPTIONS = {
 
   "HT": {
     title: "녹슬지 않은 강을 위하여",
+    description: "⚠️공사중⚠️"
+  },
+
+  "LM": {
+    title: "미로역",
     description: "⚠️공사중⚠️"
   },
 
