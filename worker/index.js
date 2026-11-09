@@ -1,4 +1,3 @@
-
 const IMAGE_ORIGIN = "https://maneulbbang.org/";
 
 function json(data, status = 200) {
