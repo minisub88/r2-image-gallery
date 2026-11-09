@@ -36,7 +36,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "MM": {
     title: "미러드 미리아",
-    description: "[웹툰&🖼️144(🔞72)/女2]"
+    description: "[🖼️144(🔞72)/女2]"
   },
 
   "MM/BG": {
