@@ -76,7 +76,7 @@ window.FOLDER_DESCRIPTIONS = {
 
   "PS": {
     title: "폐석이 바라는 것은",
-    description: "마법사들은 대개 머릿속에 떠오른 '천재적인 생각'을 즉시 저지르고 보는 기벽이 있습니다."
+    description: "우주 시대 사양산업의 비극적 사례인 마르모레아에 오신 것을 환영합니다."
   },
   
   "PS/PE": {
@@ -101,7 +101,7 @@ window.FOLDER_DESCRIPTIONS = {
   
   "PL": {
     title: "자루에 가득한 백금을 위하여",
-    description: "마법사들은 대개 머릿속에 떠오른 '천재적인 생각'을 즉시 저지르고 보는 기벽이 있습니다."
+    description: "백금의 용이냐고요? 아뇨. 하지만 '하얀 금'의 용은 맞습니다."
   },
   
   "PL/SA": {
@@ -117,6 +117,11 @@ window.FOLDER_DESCRIPTIONS = {
   "PL/MI": {
     title: "미렐라 라비에리",
     description: "감찰관"
+  },
+
+  "PL/MR": {
+    title: "미리아",
+    description: "음침한 마녀"
   },
 
   "PL/EX": {
@@ -141,6 +146,6 @@ window.FOLDER_DESCRIPTIONS = {
 
   "DD": {
     title: "기타",
-    description: "코드 하나를 독차지하기엔 너무 잡스러운 것들"
+    description: "코드 하나를 독점하기엔 너무 잡스러운 것들"
   }
 };
