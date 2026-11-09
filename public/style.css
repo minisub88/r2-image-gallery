@@ -182,6 +182,7 @@ h1 {
   max-width: 100% !important;
   max-height: 100% !important;
   object-fit: cover;
+  object-position: center 20%;
   overflow: hidden;
   background: #171a20;
 }
@@ -197,6 +198,7 @@ h1 {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
+  object-position: center 20%;
 }
 
 /* 폴더 제목 */
