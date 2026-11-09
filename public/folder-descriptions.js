@@ -129,7 +129,7 @@ window.FOLDER_DESCRIPTIONS = {
     description: "조연, 엑스트라, 적 이미지입니다."
   },
 
-  "PL/CS": {
+  "PL/ET": {
     title: "기타",
     description: "시작 상황, 소개글 용 이미지입니다. 열람을 추천하지 않습니다."
   },
