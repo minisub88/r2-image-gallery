@@ -151,6 +151,6 @@ window.FOLDER_DESCRIPTIONS = {
 
   "DD": {
     title: "기타",
-    description: "코드 하나를 독점하기엔 너무 잡스러운 것들"
+    description: "잡스러운 것들"
   }
 };
