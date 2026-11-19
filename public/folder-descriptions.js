@@ -149,6 +149,16 @@ window.FOLDER_DESCRIPTIONS = {
     description: "⚠️공사중⚠️"
   },
 
+  "HH": {
+    title: "호텔 힐데가르트",
+    description: "⚠️공사중⚠️"
+  },
+
+  "HH/HN": {
+    title: "힐다",
+    description: "지배인"
+  },
+
   "DD": {
     title: "기타",
     description: "잡스러운 것들"
