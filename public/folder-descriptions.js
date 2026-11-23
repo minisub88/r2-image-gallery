@@ -144,8 +144,8 @@ window.FOLDER_DESCRIPTIONS = {
     description: "⚠️공사중⚠️"
   },
 
-  "LM": {
-    title: "미로역",
+  "MF": {
+    title: "무제",
     description: "⚠️공사중⚠️"
   },
 
